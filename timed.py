@@ -12,9 +12,9 @@ timer = '00:00'
 TYPE_LIST = ['', 'Lesson', 'Workout']
 tasks_list = []
 tasks_dict = [
-    {'task':'Break', 'timer':5*60},
-    {'task':'Lesson', 'timer':25*60},
-    {'task':'Workout', 'timer':15*60}
+    {'task': 'Break',   'timer': 300},
+    {'task': 'Lesson',  'timer': 1500},
+    {'task': 'Workout', 'timer': 900}
 ]
 seconds_list = []
 for i in range(60):
@@ -93,11 +93,11 @@ def open_main_window():
             break
         if event == '-ADD-':
             if values['-TYPE-']:
+                timer_end = new_timer(tasks_dict[1].get('timer'))
                 if values['-TASK-']:
-                    tasks_list.append(values['-TASK-'] + " " + values['-TYPE-'])
+                    tasks_list.append(str((tasks_dict[1].get('timer')/60)) + values['-TASK-'] + " " + values['-TYPE-'])
                 else:
                     tasks_list.append(values['-TYPE-'])
-                timer_end = tasks_dict.get('timer')
             elif values['-TASK-']:
                 tasks_list.append(values['-TASK-'])
             window['-LIST-'].update(values=tasks_list)
