@@ -95,7 +95,8 @@ def open_main_window():
             if values['-TYPE-']:
                 timer_end = new_timer(tasks_dict[1].get('timer'))
                 if values['-TASK-']:
-                    tasks_list.append(str((tasks_dict[1].get('timer')/60)) + values['-TASK-'] + " " + values['-TYPE-'])
+                    list_timer = str(tasks_dict[1].get('timer')/60).split(".")
+                    tasks_list.append(f"{list_timer[0]}min{list_timer[1]}0s | " + values['-TASK-'] + " " + values['-TYPE-'])
                 else:
                     tasks_list.append(values['-TYPE-'])
             elif values['-TASK-']:
@@ -140,7 +141,10 @@ pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load(RINGTONES[0])
 
+sg.LOOK_AND_FEEL_TABLE["Main"] = {"BACKGROUND": "#ffffff", "TEXT": "#C100FF", "INPUT": "#dae0e6", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
+sg.LOOK_AND_FEEL_TABLE["Dark Main"] = {"BACKGROUND": "#000000", "TEXT": "#C100FF", "INPUT": "#050505", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
+
 # PySimpleGUI
-sg.theme('Black')
+sg.ChangeLookAndFeel('Dark Main')
 
 open_main_window()
