@@ -1,5 +1,5 @@
 <br>
-<div style="display: flex; align-items: center; justify-content: center;">
+<div align='center'>
   <img src="icons/Logo.png" alt="Timed's Logo" style="height: 170px">
   <img src="icons/Timed.png" alt="Timed" style="height: 100px">
 </div>
