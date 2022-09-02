@@ -11,3 +11,5 @@ Made with the PySimpleGUI library.
 - PySimpleGUI 
 - DateTime
 - PyGame
+# Sounds
+Ringtones aren't included since I don't have the rights for the song used.
