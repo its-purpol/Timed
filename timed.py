@@ -24,10 +24,16 @@ minutes_list = []
 for i in range(60):
     minutes = f'0{str(i)}' if len(str(i)) == 1 else str(i)
     minutes_list.append(minutes)
-ringtones = ['./sounds/sunflower.mp3', './sounds/never-gonna-give-you-up.mp3'] # Add a feature to add ringtones within the app
+ringtones = [
+    {'path': './sounds/sunflower.mp3', 'id': '0'},
+    {'path': './sounds/never-gonna-give-you-up.mp3', 'id': '1'}
+] # Add a feature to add ringtones within the app
+ringtones_paths = [ringtone.get('path') for ringtone in ringtones]
 # endregion
 
 # Functions | region
+def search(path, ringtones):
+    return [element for element in ringtones if element['path'] == path]
 def get_time(formated=True):
     if formated:
         return datetime.datetime.now().strftime('%H:%M:%S')
@@ -128,18 +134,21 @@ def open_main_window():
         window['-TIMER-'](timer)
     window.close()
 def open_settings_window():
-    layout = [[sg.Combo(ringtones, size=(None, 10), key='-RINGTONE-'), sg.Button('Apply', key='-SET_RINGTONE-')]]
+    layout = [[sg.Combo(ringtones_paths, size=(None, 10), key='-RINGTONE-'), sg.Button('Apply', key='-SET_RINGTONE-')]]
     window = sg.Window('Settings', layout)
     while True:
         event, values = window.read()
         if event is None: break
+        if event == '-SET_RINGTONE-':
+            pygame.mixer.music.load(ringtones[int(search(values['-RINGTONE-'], ringtones)[0].get("id"))].get('path'))
+            break
     window.close()
 # endregion
 
 # PyGame
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.load(ringtones[1])
+pygame.mixer.music.load(ringtones[0].get('path'))
 
 sg.LOOK_AND_FEEL_TABLE["Main"] = {"BACKGROUND": "#ffffff", "TEXT": "#C100FF", "INPUT": "#dae0e6", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
 sg.LOOK_AND_FEEL_TABLE["Dark Main"] = {"BACKGROUND": "#000000", "TEXT": "#C100FF", "INPUT": "#050505", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
