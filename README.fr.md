@@ -5,7 +5,7 @@
 <br>
 
 # Timed
-Une simple application qui vous permet de créer des tâches pour organiser vos journées.
+Une application simple qui vous permet de créer des tâches pour organiser vos journées.
 Interface créée avec la librairie PySimpleGUI.
 # Librairies
 - PySimpleGUI 
