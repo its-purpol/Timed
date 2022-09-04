@@ -3,6 +3,10 @@ import datetime
 import pygame
 
 # Variables | region
+small_text = ('Courier', 14, 'bold')
+medium_text = ('Courier', 18, 'bold')
+big_text = ('Courier', 24, 'bold')
+bigger_text = ('Courier', 69, 'bold')
 reset_timer_end = datetime.datetime(2007,2,14)
 timer_end = reset_timer_end
 timer = '00:00'
@@ -61,32 +65,32 @@ def open_main_window():
     layout = [
         [sg.Menu(menu_def)],
         [
-            sg.Text(text='', expand_x=True, justification='left', font=('Courier', 18, 'bold'), key='-DATE-'),
-            sg.Text(text='', expand_x=True, justification='right', font=('Courier', 18, 'bold'), key='-TIME-')
+            sg.Text(text='', expand_x=True, justification='left', font=medium_text, key='-DATE-'),
+            sg.Text(text='', expand_x=True, justification='right', font=medium_text, key='-TIME-')
         ],
         [sg.HSeparator()],
-        [sg.Text(text='', expand_x=True, justification='center', font=('Courier', 69, 'bold'), pad=(100, 100), key='-TIMER-')],
+        [sg.Text(text='', expand_x=True, justification='center', font=bigger_text, pad=(100, 100), key='-TIMER-')],
         [sg.HSeparator()],
         [
-            sg.Button('Start', font=('Courier', 14, 'bold'), key='-START_TIMER-'),
-            sg.Button('Stop', font=('Courier', 14, 'bold'), key='-STOP_RINGTONE-'), 
+            sg.Button('Start', font=small_text, key='-START_TIMER-'),
+            sg.Button('Stop', font=small_text, key='-STOP_RINGTONE-'), 
             sg.Frame('', 
             [
                 [
-                    sg.Combo(minutes_list, font=('Courier', 18, 'bold'), default_value='00', readonly=True, key='-MINUTES-'), 
-                    sg.Combo(seconds_list, font=('Courier', 18, 'bold'), default_value='00', readonly=True, key='-SECONDS-')
+                    sg.Combo(minutes_list, font=medium_text, default_value='00', readonly=True, key='-MINUTES-'), 
+                    sg.Combo(seconds_list, font=medium_text, default_value='00', readonly=True, key='-SECONDS-')
                 ]
             ], 
             border_width=0, element_justification='right', expand_x=True)
         ],
         [
-            sg.Listbox(values=tasks_list, font=('Courier', 14, 'bold'), expand_x=True, size=(None, 10), key='-LIST-')
+            sg.Listbox(values=tasks_list, font=small_text, expand_x=True, size=(None, 10), key='-LIST-')
         ],
         [
-            sg.Text('Task:', font=('Courier', 18, 'bold')), 
-            sg.Input(font=('Courier', 18, 'bold'), size=(0, None), expand_x=True, key='-TASK-'),
-            sg.Combo(values=TYPE_LIST, font=('Courier', 18, 'bold'), readonly=True, key='-TYPE-'), 
-            sg.Button('Add', font=('Courier', 14, 'bold'), key='-ADD-')
+            sg.Text('Task:', font=medium_text), 
+            sg.Input(font=medium_text, size=(0, None), expand_x=True, key='-TASK-'),
+            sg.Combo(values=TYPE_LIST, font=medium_text, readonly=True, key='-TYPE-'), 
+            sg.Button('Add', font=small_text, key='-ADD-')
         ]
     ]
 
@@ -134,15 +138,24 @@ def open_main_window():
         window['-TIMER-'](timer)
     window.close()
 def open_settings_window():
-    layout = [[sg.Combo(ringtones_paths, size=(None, 10), key='-RINGTONE-'), sg.Button('Apply', key='-SET_RINGTONE-')]]
-    window = sg.Window('Settings', layout)
+    layout = [
+        [sg.Text('Settings', font=big_text)], [sg.HSeparator()],
+        [sg.Text('Ringtone: ', font=medium_text), sg.Combo(ringtones_paths, size=(None, 10), readonly=True, key='-RINGTONE-')],
+        [sg.Text('Theme: ', font=medium_text), sg.Combo(themes, size=(None, 10), readonly=True, key='-THEME-')],
+        [sg.Button('Apply', key='-APPLY-'), sg.Button('Exit', key='-EXIT-')]]
+    settings_window = sg.Window('Settings', layout)
     while True:
-        event, values = window.read()
-        if event is None: break
-        if event == '-SET_RINGTONE-':
-            pygame.mixer.music.load(ringtones[int(search(values['-RINGTONE-'], ringtones)[0].get("id"))].get('path'))
-            break
-    window.close()
+        event, values = settings_window.read()
+        if event in (None, '-EXIT-'): break
+        if event == '-APPLY-':
+            if values['-RINGTONE-']:
+                try:
+                    pygame.mixer.music.load(ringtones[int(search(values['-RINGTONE-'], ringtones)[0].get("id"))].get('path'))
+                except IndexError:
+                    sg.PopupNoBorder("Ringtone can't be empty!")
+            if values['-THEME-']:
+                print('New Theme') # add json support and close the window after setting theme
+    settings_window.close()
 # endregion
 
 # PyGame
@@ -152,8 +165,11 @@ pygame.mixer.music.load(ringtones[0].get('path'))
 
 sg.LOOK_AND_FEEL_TABLE["Main"] = {"BACKGROUND": "#ffffff", "TEXT": "#C100FF", "INPUT": "#dae0e6", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
 sg.LOOK_AND_FEEL_TABLE["Dark Main"] = {"BACKGROUND": "#000000", "TEXT": "#C100FF", "INPUT": "#050505", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
+themes = sg.ListOfLookAndFeelValues()
 
 # PySimpleGUI
 sg.ChangeLookAndFeel('Dark Main')
+sg.set_global_icon('icons/Logo.ico')
+sg.set_options(font=small_text)
 
 open_main_window()
