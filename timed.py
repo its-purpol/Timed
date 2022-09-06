@@ -10,6 +10,7 @@ bigger_text = ('Courier', 69, 'bold')
 reset_timer_end = datetime.datetime(2007,2,14)
 timer_end = reset_timer_end
 timer = '00:00'
+relaunch = True
 # endregion
 
 # Lists | region
@@ -55,6 +56,8 @@ def open_main_window():
     global reset_timer_end
     global timer_end
     global timer
+    global relaunch
+    relaunch = False
 
     menu_def = [['&Timed', ['&Settings', '&Save::savekey', '---', '&Properties', 'E&xit']],
                 ['&Edit', ['&Paste', ['Special', 'Normal', ], 'Undo'], ],
@@ -99,7 +102,7 @@ def open_main_window():
     while True:
         event, values = window.read(timeout=1)
         
-        if event in [None, 'Exit']:
+        if event in [None, 'Exit'] or relaunch:
             break
         if event == '-ADD-':
             if values['-TYPE-']:
@@ -121,7 +124,7 @@ def open_main_window():
             timer = '00:00'
             pygame.mixer.music.stop()
         if event == 'Settings':
-            settings_window = open_settings_window()
+            open_settings_window()
 
         local_time = get_time()
         local_date = get_date()
@@ -136,8 +139,10 @@ def open_main_window():
         window['-DATE-'](local_date)
         window['-TIME-'](local_time)
         window['-TIMER-'](timer)
+        
     window.close()
 def open_settings_window():
+    global relaunch
     layout = [
         [sg.Text('Settings', font=big_text)], [sg.HSeparator()],
         [sg.Text('Ringtone: ', font=medium_text), sg.Combo(ringtones_paths, size=(None, 10), readonly=True, key='-RINGTONE-')],
@@ -154,7 +159,9 @@ def open_settings_window():
                 except IndexError:
                     sg.PopupNoBorder("Ringtone can't be empty!")
             if values['-THEME-']:
-                print('New Theme') # add json support and close the window after setting theme
+                relaunch = True
+                sg.theme(values['-THEME-']) # add json support and close the window after setting theme
+
     settings_window.close()
 # endregion
 
@@ -172,4 +179,5 @@ sg.ChangeLookAndFeel('Dark Main')
 sg.set_global_icon('icons/Logo.ico')
 sg.set_options(font=small_text)
 
-open_main_window()
+while relaunch:
+    open_main_window()
