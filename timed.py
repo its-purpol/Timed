@@ -2,7 +2,7 @@ import PySimpleGUI as sg # Docs : https://www.pysimplegui.org/en/stable/
 import datetime
 import pygame
 
-# Variables | region
+# region | Variables
 small_text = ('Courier', 14, 'bold')
 medium_text = ('Courier', 18, 'bold')
 big_text = ('Courier', 24, 'bold')
@@ -13,7 +13,7 @@ timer = '00:00'
 relaunch = True
 # endregion
 
-# Lists | region
+# region | Lists
 TYPE_LIST = ['', 'Lesson', 'Workout']
 tasks_list = []
 tasks_dict = [
@@ -32,11 +32,11 @@ for i in range(60):
 ringtones = [
     {'path': './sounds/sunflower.mp3', 'id': '0'},
     {'path': './sounds/never-gonna-give-you-up.mp3', 'id': '1'}
-] # Add a feature to add ringtones within the app
+]
 ringtones_paths = [ringtone.get('path') for ringtone in ringtones]
 # endregion
 
-# Functions | region
+# region | Functions
 def search(path, ringtones):
     return [element for element in ringtones if element['path'] == path]
 def get_time(formated=True):
@@ -144,9 +144,15 @@ def open_main_window():
 def open_settings_window():
     global relaunch
     layout = [
-        [sg.Text('Settings', font=big_text)], [sg.HSeparator()],
-        [sg.Text('Ringtone: ', font=medium_text), sg.Combo(ringtones_paths, size=(None, 10), readonly=True, key='-RINGTONE-')],
-        [sg.Text('Theme: ', font=medium_text), sg.Combo(themes, size=(None, 10), readonly=True, key='-THEME-')],
+        [sg.Text('Settings', font=big_text)],
+        [sg.HSeparator()],
+        [sg.Text('Ringtone', font=medium_text)],
+        [sg.Text('Set:', font=medium_text), sg.Combo(ringtones_paths, size=(None, 10), readonly=True, expand_x=True, key='-RINGTONE-')],
+        [sg.Text('Add:', font=medium_text), sg.Input(size=(None, 10), expand_x=True, key='-ADD_RINGTONE-'), (sg.FileBrowse())],
+        [sg.HSeparator()],
+        [sg.Text('Theme', font=medium_text)],
+        [sg.Text('Set:', font=medium_text), sg.Combo(themes, size=(None, 10), readonly=True, expand_x=True, key='-THEME-')],
+        [sg.HSeparator()],
         [sg.Button('Apply', key='-APPLY-'), sg.Button('Exit', key='-EXIT-')]]
     settings_window = sg.Window('Settings', layout)
     while True:
@@ -158,9 +164,15 @@ def open_settings_window():
                     pygame.mixer.music.load(ringtones[int(search(values['-RINGTONE-'], ringtones)[0].get("id"))].get('path'))
                 except IndexError:
                     sg.PopupNoBorder("Ringtone can't be empty!")
+            if values['-ADD_RINGTONE-']:
+                new_entry = {'path': values['-ADD_RINGTONE-'], 'id': len(ringtones)}
+                ringtones.append(new_entry)
+                ringtones_paths.append(values['-ADD_RINGTONE-'])
+                settings_window['-ADD_RINGTONE-']('')
+                settings_window['-RINGTONE-'](values=ringtones_paths)
             if values['-THEME-']:
                 relaunch = True
-                sg.theme(values['-THEME-']) # add json support and close the window after setting theme
+                sg.theme(values['-THEME-'])
 
     settings_window.close()
 # endregion
@@ -170,12 +182,12 @@ pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load(ringtones[0].get('path'))
 
-sg.LOOK_AND_FEEL_TABLE["Main"] = {"BACKGROUND": "#ffffff", "TEXT": "#C100FF", "INPUT": "#dae0e6", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
-sg.LOOK_AND_FEEL_TABLE["Dark Main"] = {"BACKGROUND": "#000000", "TEXT": "#C100FF", "INPUT": "#050505", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
+sg.LOOK_AND_FEEL_TABLE[".Main"] = {"BACKGROUND": "#ffffff", "TEXT": "#C100FF", "INPUT": "#dae0e6", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
+sg.LOOK_AND_FEEL_TABLE[".DarkMain"] = {"BACKGROUND": "#000000", "TEXT": "#C100FF", "INPUT": "#050505", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
 themes = sg.ListOfLookAndFeelValues()
 
 # PySimpleGUI
-sg.ChangeLookAndFeel('Dark Main')
+sg.ChangeLookAndFeel('.DarkMain')
 sg.set_global_icon('icons/Logo.ico')
 sg.set_options(font=small_text)
 
