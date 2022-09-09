@@ -1,6 +1,42 @@
 import PySimpleGUI as sg # Docs : https://www.pysimplegui.org/en/stable/
 import datetime
 import pygame
+import json
+import re
+
+# region | Json
+def get_json_content(json_file):
+    with open(json_file) as file:
+        file = json.load(file)
+    return file
+def add_ringtone(name, path, json_file="settings/user_settings.json"):
+    content = {"name": name, "path": path, "id": len(get_ringtone_list())}
+    json_content.get("ringtones").append(content)
+    with open(json_file, "w") as file:
+        json.dump(json_content, file, indent=4)
+def get_ringtone():
+    global json_content
+    return json_content.get("settings").get("current_ringtone")
+def get_ringtone_id():
+    global json_content
+    return json_content.get("settings").get("current_ringtone_id")
+def change_ringtone(new_name, new_id, json_file="settings/user_settings.json"):
+    json_content.get("settings")["current_ringtone"] = new_name
+    json_content.get("settings")["current_ringtone_id"] = new_id
+    with open(json_file, "w") as file:
+        json.dump(json_content, file, indent=4)
+def change_theme(new_theme, json_file="settings/user_settings.json"):
+    json_content.get("settings")["current_theme"] = new_theme
+    with open(json_file, "w") as file:
+        json.dump(json_content, file, indent=4)
+def get_theme():
+    global json_content
+    return json_content.get("settings").get("current_theme")
+def get_ringtone_list():
+    global json_content
+    return [i.get("name") for i in json_content.get("ringtones")]
+json_content = get_json_content("settings/user_settings.json")
+# endregion
 
 # region | Variables
 small_text = ('Courier', 14, 'bold')
@@ -16,7 +52,7 @@ relaunch = True
 # region | Lists
 TYPE_LIST = ['', 'Lesson', 'Workout']
 tasks_list = []
-tasks_dict = [
+TASKS_DICT = [
     {'task': 'Break',   'timer': 300},
     {'task': 'Lesson',  'timer': 1500},
     {'task': 'Workout', 'timer': 900}
@@ -29,11 +65,7 @@ minutes_list = []
 for i in range(60):
     minutes = f'0{str(i)}' if len(str(i)) == 1 else str(i)
     minutes_list.append(minutes)
-ringtones = [
-    {'path': './sounds/sunflower.mp3', 'id': '0'},
-    {'path': './sounds/never-gonna-give-you-up.mp3', 'id': '1'}
-]
-ringtones_paths = [ringtone.get('path') for ringtone in ringtones]
+ringtones = get_ringtone_list()
 # endregion
 
 # region | Functions
@@ -53,6 +85,8 @@ def check_type():
     length = 25
     return task_type, length
 def open_main_window():
+    global json_content
+    json_content = get_json_content("settings/user_settings.json")
     global reset_timer_end
     global timer_end
     global timer
@@ -106,9 +140,9 @@ def open_main_window():
             break
         if event == '-ADD-':
             if values['-TYPE-']:
-                timer_end = new_timer(tasks_dict[1].get('timer'))
+                timer_end = new_timer(TASKS_DICT[1].get('timer'))
                 if values['-TASK-']:
-                    list_timer = str(tasks_dict[1].get('timer')/60).split(".")
+                    list_timer = str(TASKS_DICT[1].get('timer')/60).split(".")
                     tasks_list.append(f"{list_timer[0]}min{list_timer[1]}0s | " + values['-TASK-'] + " " + values['-TYPE-'])
                 else:
                     tasks_list.append(values['-TYPE-'])
@@ -143,12 +177,19 @@ def open_main_window():
     window.close()
 def open_settings_window():
     global relaunch
+    ringtone_add = [
+        [sg.Text('Set:', font=medium_text), sg.Combo(ringtones, size=(None, 10), readonly=True, expand_x=True, key='-RINGTONE-')],
+        [sg.Button('Add', expand_x=True, key='-ADD-')]
+    ]
+    ringtone_add_settings = [
+        [sg.Text('Path:', font=medium_text), sg.Input(size=(None, 10), expand_x=True, key='-PATH-'), (sg.FileBrowse())],
+        [sg.Text('Name:', font=medium_text), sg.Input(size=(None, 10), expand_x=True, key='-NAME-'), sg.Button('Add', key='-ADD_RINGTONE-')],
+    ]
     layout = [
         [sg.Text('Settings', font=big_text)],
         [sg.HSeparator()],
-        [sg.Text('Ringtone', font=medium_text)],
-        [sg.Text('Set:', font=medium_text), sg.Combo(ringtones_paths, size=(None, 10), readonly=True, expand_x=True, key='-RINGTONE-')],
-        [sg.Text('Add:', font=medium_text), sg.Input(size=(None, 10), expand_x=True, key='-ADD_RINGTONE-'), (sg.FileBrowse())],
+        [sg.Text('Ringtone', font=medium_text, enable_events=True, key='-TITLE-')],
+        [sg.Column(ringtone_add, key='-1-'), sg.Column(ringtone_add_settings, visible=False, key='-2-')],
         [sg.HSeparator()],
         [sg.Text('Theme', font=medium_text)],
         [sg.Text('Set:', font=medium_text), sg.Combo(themes, size=(None, 10), readonly=True, expand_x=True, key='-THEME-')],
@@ -161,33 +202,41 @@ def open_settings_window():
         if event == '-APPLY-':
             if values['-RINGTONE-']:
                 try:
-                    pygame.mixer.music.load(ringtones[int(search(values['-RINGTONE-'], ringtones)[0].get("id"))].get('path'))
+                    pygame.mixer.music.load(json_content.get("ringtones")[ringtones.index(values['-RINGTONE-'])].get("path"))
+                    change_ringtone(values['-RINGTONE-'], json_content.get("ringtones")[ringtones.index(values['-RINGTONE-'])].get("id"))
                 except IndexError:
                     sg.PopupNoBorder("Ringtone can't be empty!")
-            if values['-ADD_RINGTONE-']:
-                new_entry = {'path': values['-ADD_RINGTONE-'], 'id': len(ringtones)}
-                ringtones.append(new_entry)
-                ringtones_paths.append(values['-ADD_RINGTONE-'])
-                settings_window['-ADD_RINGTONE-']('')
-                settings_window['-RINGTONE-'](values=ringtones_paths)
             if values['-THEME-']:
                 relaunch = True
                 sg.theme(values['-THEME-'])
-
+                change_theme(values['-THEME-'])
+        if event == '-ADD-':
+            settings_window['-TITLE-'].update('Ringtone > Add')
+            settings_window['-2-'].update(visible=True)
+            settings_window['-1-'].update(visible=False)
+        if event == '-TITLE-':
+            settings_window['-TITLE-'].update('Ringtone')
+            settings_window['-1-'].update(visible=True)
+            settings_window['-2-'].update(visible=False)
+        if event == '-ADD_RINGTONE-':
+            add_ringtone(values['-NAME-'], values['-PATH-'])
+            ringtones.append(values['-NAME-'])
+            settings_window['-PATH-']('')
+            settings_window['-RINGTONE-'](values=ringtones)
     settings_window.close()
 # endregion
 
 # PyGame
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.load(ringtones[0].get('path'))
+pygame.mixer.music.load(json_content.get("ringtones")[get_ringtone_id()].get("path"))
 
 sg.LOOK_AND_FEEL_TABLE[".Main"] = {"BACKGROUND": "#ffffff", "TEXT": "#C100FF", "INPUT": "#dae0e6", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
 sg.LOOK_AND_FEEL_TABLE[".DarkMain"] = {"BACKGROUND": "#000000", "TEXT": "#C100FF", "INPUT": "#050505", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
 themes = sg.ListOfLookAndFeelValues()
 
 # PySimpleGUI
-sg.ChangeLookAndFeel('.DarkMain')
+sg.ChangeLookAndFeel(get_theme())
 sg.set_global_icon('icons/Logo.ico')
 sg.set_options(font=small_text)
 
