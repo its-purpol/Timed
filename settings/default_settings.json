@@ -1,0 +1,15 @@
+{
+    "settings": {
+        "current_theme": ".DarkMain",
+        "current_ringtone": "Candyland",
+        "current_ringtone_id": 0
+    },
+    "ringtones": [
+        {
+            "name": "Candyland",
+            "path": "sounds/candyland.mp3",
+            "id": 0
+        }
+    ],
+    "tasks": {}
+}
