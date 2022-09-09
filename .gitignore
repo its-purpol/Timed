@@ -1,3 +1,7 @@
-test.py
-sounds/
 .vscode/
+sounds/never-gonna-give-you-up.mp3
+sounds/sunflower.mp3
+
+# Test files
+ignore.py
+ignore.json

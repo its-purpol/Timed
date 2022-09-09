@@ -1,0 +1,20 @@
+{
+    "settings": {
+        "current_theme": ".Main",
+        "current_ringtone": "Candyland",
+        "current_ringtone_id": 0
+    },
+    "ringtones": [
+        {
+            "name": "Candyland",
+            "path": "sounds/candyland.mp3",
+            "id": 0
+        },
+        {
+            "name": "Stardust-crusaders",
+            "path": "C:/Users/paula/Desktop/stardust-crusaders.mp3",
+            "id": 1
+        }
+    ],
+    "tasks": {}
+}
