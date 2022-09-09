@@ -1,4 +1,4 @@
-<a href='https://github.com/Zeyko14/Timed/blob/f5ec3f8a201ccdd92e205c4483cd34ca645200b3/README.fr.md'>🇫🇷FR</a>
+<a href='https://github.com/Zeyko14/Timed/blob/main/README.fr.md'>🇫🇷FR</a>
 
 <br>
 <div align='center'>
