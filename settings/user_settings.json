@@ -16,5 +16,21 @@
             "id": 1
         }
     ],
-    "tasks": {}
+    "tasks": [
+        {
+            "type": "Lesson",
+            "name": "C++",
+            "id": 0
+        },
+        {
+            "type": "Workout",
+            "name": "",
+            "id": 1
+        },
+        {
+            "type": "Lesson",
+            "name": "Korean",
+            "id": 2
+        }
+    ]
 }
