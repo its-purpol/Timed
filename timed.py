@@ -43,11 +43,16 @@ def get_task_list():
     global json_content
     task_list = []
     for i in json_content.get("tasks"):
+        duration = str(get_duration_from_type(i.get('type'))/60).split(".")
         if i.get("name"):
-            task_list.append((i.get("name"), i.get("type")))
+            task_list.append((f"{duration[0]}min{duration[1]}0s | " + i.get("name") + " " + i.get("type")))
         else:
-            task_list.append(i.get("type"))
+            task_list.append((f"{duration[0]}min{duration[1]}0s | " + i.get("type")))
     return task_list
+def get_duration_from_type(task_type):
+    for i in TASKS_DICT:
+        if task_type == i.get('task'):
+            return i.get('timer')
 json_content = get_json_content("settings/user_settings.json")
 # endregion
 
@@ -153,15 +158,6 @@ def open_main_window():
             break
         if event == '-ADD-':
             add_task(values['-TYPE-'], values['-TASK-'])
-            # if values['-TYPE-']:
-            #     timer_end = new_timer(TASKS_DICT[1].get('timer'))
-            #     if values['-TASK-']:
-            #         list_timer = str(TASKS_DICT[1].get('timer')/60).split(".")
-            #         tasks_list.append(f"{list_timer[0]}min{list_timer[1]}0s | " + values['-TASK-'] + " " + values['-TYPE-'])
-            #     else:
-            #         tasks_list.append(values['-TYPE-'])
-            # elif values['-TASK-']:
-            #     tasks_list.append(values['-TASK-'])
             window['-LIST-'].update(values=get_task_list())
             window['-TASK-'].update('')
         if event == '-START_TIMER-':

@@ -31,6 +31,11 @@
             "type": "Lesson",
             "name": "Korean",
             "id": 2
+        },
+        {
+            "type": "Break",
+            "name": "",
+            "id": 3
         }
     ]
 }
