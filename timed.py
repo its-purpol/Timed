@@ -2,7 +2,6 @@ import PySimpleGUI as sg # Docs : https://www.pysimplegui.org/en/stable/
 import datetime
 import pygame
 import json
-import re
 
 # region | Json
 def get_json_content(json_file):
@@ -12,6 +11,11 @@ def get_json_content(json_file):
 def add_ringtone(name, path, json_file="settings/user_settings.json"):
     content = {"name": name, "path": path, "id": len(get_ringtone_list())}
     json_content.get("ringtones").append(content)
+    with open(json_file, "w") as file:
+        json.dump(json_content, file, indent=4)
+def add_task(task_type, name="", json_file="settings/user_settings.json"):
+    content = {"type": task_type, "name": name, "id": len(get_task_list())}
+    json_content.get("tasks").append(content)
     with open(json_file, "w") as file:
         json.dump(json_content, file, indent=4)
 def get_ringtone():
@@ -35,6 +39,15 @@ def get_theme():
 def get_ringtone_list():
     global json_content
     return [i.get("name") for i in json_content.get("ringtones")]
+def get_task_list():
+    global json_content
+    task_list = []
+    for i in json_content.get("tasks"):
+        if i.get("name"):
+            task_list.append((i.get("name"), i.get("type")))
+        else:
+            task_list.append(i.get("type"))
+    return task_list
 json_content = get_json_content("settings/user_settings.json")
 # endregion
 
@@ -50,13 +63,13 @@ relaunch = True
 # endregion
 
 # region | Lists
-TYPE_LIST = ['', 'Lesson', 'Workout']
-tasks_list = []
 TASKS_DICT = [
     {'task': 'Break',   'timer': 300},
     {'task': 'Lesson',  'timer': 1500},
     {'task': 'Workout', 'timer': 900}
 ]
+TYPE_LIST = [tasks.get("task") for tasks in TASKS_DICT]
+tasks_list = get_task_list()
 seconds_list = []
 for i in range(60):
     seconds = f'0{str(i)}' if len(str(i)) == 1 else str(i)
@@ -139,16 +152,17 @@ def open_main_window():
         if event in [None, 'Exit'] or relaunch:
             break
         if event == '-ADD-':
-            if values['-TYPE-']:
-                timer_end = new_timer(TASKS_DICT[1].get('timer'))
-                if values['-TASK-']:
-                    list_timer = str(TASKS_DICT[1].get('timer')/60).split(".")
-                    tasks_list.append(f"{list_timer[0]}min{list_timer[1]}0s | " + values['-TASK-'] + " " + values['-TYPE-'])
-                else:
-                    tasks_list.append(values['-TYPE-'])
-            elif values['-TASK-']:
-                tasks_list.append(values['-TASK-'])
-            window['-LIST-'].update(values=tasks_list)
+            add_task(values['-TYPE-'], values['-TASK-'])
+            # if values['-TYPE-']:
+            #     timer_end = new_timer(TASKS_DICT[1].get('timer'))
+            #     if values['-TASK-']:
+            #         list_timer = str(TASKS_DICT[1].get('timer')/60).split(".")
+            #         tasks_list.append(f"{list_timer[0]}min{list_timer[1]}0s | " + values['-TASK-'] + " " + values['-TYPE-'])
+            #     else:
+            #         tasks_list.append(values['-TYPE-'])
+            # elif values['-TASK-']:
+            #     tasks_list.append(values['-TASK-'])
+            window['-LIST-'].update(values=get_task_list())
             window['-TASK-'].update('')
         if event == '-START_TIMER-':
             timer_end = new_timer(60*int(values['-MINUTES-'])+int(values['-SECONDS-'])+1)
@@ -211,18 +225,21 @@ def open_settings_window():
                 sg.theme(values['-THEME-'])
                 change_theme(values['-THEME-'])
         if event == '-ADD-':
-            settings_window['-TITLE-'].update('Ringtone > Add')
-            settings_window['-2-'].update(visible=True)
-            settings_window['-1-'].update(visible=False)
+            settings_window['-TITLE-']('Ringtone > Add')
+            settings_window['-2-'](visible=True)
+            settings_window['-1-'](visible=False)
         if event == '-TITLE-':
-            settings_window['-TITLE-'].update('Ringtone')
-            settings_window['-1-'].update(visible=True)
-            settings_window['-2-'].update(visible=False)
+            settings_window['-TITLE-']('Ringtone')
+            settings_window['-1-'](visible=True)
+            settings_window['-2-'](visible=False)
         if event == '-ADD_RINGTONE-':
             add_ringtone(values['-NAME-'], values['-PATH-'])
             ringtones.append(values['-NAME-'])
-            settings_window['-PATH-']('')
             settings_window['-RINGTONE-'](values=ringtones)
+            settings_window['-PATH-']('')
+            settings_window['-TITLE-']('Ringtone')
+            settings_window['-1-'](visible=True)
+            settings_window['-2-'](visible=False)
     settings_window.close()
 # endregion
 
