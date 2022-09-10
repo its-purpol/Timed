@@ -14,4 +14,4 @@ UI made with the PySimpleGUI library.
 - DateTime
 - PyGame
 # Sounds
-Ringtones aren't included since I don't have the rights for the songs used.
+- Tobu - Candyland [NCS Release]: http://ncs.io/candyland

@@ -14,4 +14,4 @@ Interface créée avec la librairie PySimpleGUI.
 - DateTime
 - PyGame
 # Sounds
-Les alarmes ne sont pas incluses puisque je n'ai pas les droits des musiques utilisées.
+- Tobu - Candyland [NCS Release]: http://ncs.io/candyland
