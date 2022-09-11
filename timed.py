@@ -1,6 +1,8 @@
-import PySimpleGUI as sg # Docs : https://www.pysimplegui.org/en/stable/
+import PySimpleGUI as sg
 import datetime
 import pygame
+import re
+import webbrowser
 import json
 
 # region | Json
@@ -43,16 +45,33 @@ def get_task_list():
     global json_content
     task_list = []
     for i in json_content.get("tasks"):
-        duration = str(get_duration_from_type(i.get('type'))/60).split(".")
-        if i.get("name"):
-            task_list.append((f"{duration[0]}min{duration[1]}0s | " + i.get("name") + " " + i.get("type")))
+        duration = int(get_duration_from_type(i.get('type')))
+        if duration >= 60:
+            duration = str(duration/60).split(".")
+            if i.get("name"):
+                task_list.append((f"{duration[0]}min{duration[1]}0s | " + i.get("name") + " " + i.get("type")))
+            else:
+                task_list.append((f"{duration[0]}min{duration[1]}0s | " + i.get("type")))
         else:
-            task_list.append((f"{duration[0]}min{duration[1]}0s | " + i.get("type")))
+            duration = str(duration)
+            if i.get("name"):
+                task_list.append((f"00min{duration}s | " + i.get("name") + " " + i.get("type")))
+            else:
+                task_list.append((f"00min{duration}s | " + i.get("type")))
     return task_list
 def get_duration_from_type(task_type):
     for i in TASKS_DICT:
         if task_type == i.get('task'):
             return i.get('timer')
+def delete_task(task_id, json_file="settings/user_settings.json"):
+    try:
+        task_id = json_content.get("tasks").pop(task_id)
+        for i in range(len(json_content.get("tasks"))-task_id.get("id")):
+            json_content.get("tasks")[i+task_id.get("id")]["id"] = i+task_id.get("id")
+        with open(json_file, "w") as file:
+            json.dump(json_content, file, indent=4)
+    except IndexError:
+        sg.PopupAnnoying("[ERROR]: Can't access this task!")
 json_content = get_json_content("settings/user_settings.json")
 # endregion
 
@@ -71,7 +90,8 @@ relaunch = True
 TASKS_DICT = [
     {'task': 'Break',   'timer': 300},
     {'task': 'Lesson',  'timer': 1500},
-    {'task': 'Workout', 'timer': 900}
+    {'task': 'Workout', 'timer': 900},
+    {'task': 'Test', 'timer': 10}
 ]
 TYPE_LIST = [tasks.get("task") for tasks in TASKS_DICT]
 tasks_list = get_task_list()
@@ -87,8 +107,6 @@ ringtones = get_ringtone_list()
 # endregion
 
 # region | Functions
-def search(path, ringtones):
-    return [element for element in ringtones if element['path'] == path]
 def get_time(formated=True):
     if formated:
         return datetime.datetime.now().strftime('%H:%M:%S')
@@ -98,10 +116,6 @@ def get_date():
     return datetime.datetime.now().strftime('%d/%m/%Y')
 def new_timer(add_seconds=0):
     return datetime.datetime.now() + datetime.timedelta(seconds=add_seconds)
-def check_type():
-    task_type = 'Lesson'
-    length = 25
-    return task_type, length
 def open_main_window():
     global json_content
     json_content = get_json_content("settings/user_settings.json")
@@ -110,12 +124,11 @@ def open_main_window():
     global timer
     global relaunch
     relaunch = False
+    paused = False
 
-    menu_def = [['&Timed', ['&Settings', '&Save::savekey', '---', '&Properties', 'E&xit']],
+    menu_def = [['&Timed', ['&Settings', '---', 'E&xit']],
                 ['&Edit', ['&Paste', ['Special', 'Normal', ], 'Undo'], ],
-                ['&Debugger', ['Popout', 'Launch Debugger']],
-                ['&Toolbar', ['Command &1', 'Command &2', 'Command &3', 'Command &4']],
-                ['&Help', '&About...']]
+                ['&Help', ['&About...', '&Report an issue']]]
 
     layout = [
         [sg.Menu(menu_def)],
@@ -127,25 +140,19 @@ def open_main_window():
         [sg.Text(text='', expand_x=True, justification='center', font=bigger_text, pad=(100, 100), key='-TIMER-')],
         [sg.HSeparator()],
         [
-            sg.Button('Start', font=small_text, key='-START_TIMER-'),
-            sg.Button('Stop', font=small_text, key='-STOP_RINGTONE-'), 
-            sg.Frame('', 
-            [
-                [
-                    sg.Combo(minutes_list, font=medium_text, default_value='00', readonly=True, key='-MINUTES-'), 
-                    sg.Combo(seconds_list, font=medium_text, default_value='00', readonly=True, key='-SECONDS-')
-                ]
-            ], 
-            border_width=0, element_justification='right', expand_x=True)
+            sg.Button('Start', key='-START_TIMER-'),
+            sg.Button('Pause', key='-PAUSE_TIMER-'), 
+            sg.Button('Stop', key='-STOP_RINGTONE-', visible=False),
+            sg.Button('Delete', key='-DELETE_RINGTONE-')
         ],
         [
-            sg.Listbox(values=tasks_list, font=small_text, expand_x=True, size=(None, 10), key='-LIST-')
+            sg.Listbox(values=tasks_list, expand_x=True, size=(None, 10), key='-LIST-')
         ],
         [
             sg.Text('Task:', font=medium_text), 
             sg.Input(font=medium_text, size=(0, None), expand_x=True, key='-TASK-'),
             sg.Combo(values=TYPE_LIST, font=medium_text, readonly=True, key='-TYPE-'), 
-            sg.Button('Add', font=small_text, key='-ADD-')
+            sg.Button('Add', key='-ADD-')
         ]
     ]
 
@@ -153,7 +160,7 @@ def open_main_window():
 
     while True:
         event, values = window.read(timeout=1)
-        
+
         if event in [None, 'Exit'] or relaunch:
             break
         if event == '-ADD-':
@@ -161,29 +168,51 @@ def open_main_window():
             window['-LIST-'].update(values=get_task_list())
             window['-TASK-'].update('')
         if event == '-START_TIMER-':
-            timer_end = new_timer(60*int(values['-MINUTES-'])+int(values['-SECONDS-'])+1)
-            timer = ''.join(':'.join(str(timer_end - get_time(False)).split(':')[1:]).split('.')[:1])
+            if not paused:
+                mins = 60*int((re.findall("(.*)min(.*)s |", get_task_list()[0]))[0][0])+int((re.findall("(.*)min(.*)s |", tasks_list[0]))[0][1])
+                timer_end = new_timer(mins+1)
+                timer = ''.join(':'.join(str(timer_end - get_time(False)).split(':')[1:]).split('.')[:1])
+            if paused:
+                timer_end = new_timer(mins.total_seconds())
+            play = True
+        if event == '-PAUSE_TIMER-':
+            play = False
+            paused = True
+            mins = timer_end - get_time(False)
+            print(type(mins))
+            timer_end = reset_timer_end
         if event == '-STOP_RINGTONE-':
             timer_end = reset_timer_end
             timer = '00:00'
             pygame.mixer.music.stop()
+            window['-DELETE_RINGTONE-'](visible=True)
+            window['-STOP_RINGTONE-'](visible=False)
+            paused = False
+        if event == '-DELETE_RINGTONE-':
+            timer_end = reset_timer_end
+            timer = '00:00'
+            delete_task(0)
+            window['-LIST-'](values=get_task_list())
         if event == 'Settings':
             open_settings_window()
-
+        if event == 'About...': 
+            webbrowser.open('https://github.com/Zeyko14/Timed', new=0)
+        if event == 'Report an issue': 
+            webbrowser.open('https://github.com/Zeyko14/Timed/issues', new=0)
         local_time = get_time()
         local_date = get_date()
-        if timer != '00:00':
+        if timer != '00:00' and play:
             timer = ''.join(':'.join(str(timer_end - get_time(False)).split(':')[1:]).split('.')[:1])
         if get_time() == timer_end.strftime('%H:%M:%S'):
             timer_end = reset_timer_end
             pygame.mixer.music.play()
-        if values['-MINUTES-'] == '00' and values['-SECONDS-'] == '00':
-            window['-SECONDS-'].update('01')
-
+            window['-STOP_RINGTONE-'](visible=True)
+            window['-DELETE_RINGTONE-'](visible=False)
+        
         window['-DATE-'](local_date)
         window['-TIME-'](local_time)
         window['-TIMER-'](timer)
-        
+
     window.close()
 def open_settings_window():
     global relaunch
@@ -244,11 +273,11 @@ pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load(json_content.get("ringtones")[get_ringtone_id()].get("path"))
 
+# PySimpleGUI
 sg.LOOK_AND_FEEL_TABLE[".Main"] = {"BACKGROUND": "#ffffff", "TEXT": "#C100FF", "INPUT": "#dae0e6", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
 sg.LOOK_AND_FEEL_TABLE[".DarkMain"] = {"BACKGROUND": "#000000", "TEXT": "#C100FF", "INPUT": "#050505", "TEXT_INPUT": "#C100FF", "SCROLL": "#C100FF", "BUTTON": ("#FFFFFF", "#C100FF"), "PROGRESS": ("FFFFFF", "C100FF"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#C100FF", "ACCENT2": "#C100FF", "ACCENT3": "#C100FF"}
+sg.LOOK_AND_FEEL_TABLE[".Black"] = {"BACKGROUND": "#000000", "TEXT": "#AAAAAA", "INPUT": "#050505", "TEXT_INPUT": "#AAAAAA", "SCROLL": "#AAAAAA", "BUTTON": ("#AAAAAA", "#111111"), "PROGRESS": ("AAAAAA", "111111"), "BORDER": 1, "SLIDER_DEPTH": 0, "PROGRESS_DEPTH": 0, "ACCENT1": "#AAAAAA", "ACCENT2": "#AAAAAA", "ACCENT3": "#AAAAAA"}
 themes = sg.ListOfLookAndFeelValues()
-
-# PySimpleGUI
 sg.ChangeLookAndFeel(get_theme())
 sg.set_global_icon('icons/Logo.ico')
 sg.set_options(font=small_text)

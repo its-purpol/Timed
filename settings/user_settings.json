@@ -1,8 +1,8 @@
 {
     "settings": {
-        "current_theme": ".Main",
-        "current_ringtone": "Candyland",
-        "current_ringtone_id": 0
+        "current_theme": ".Black",
+        "current_ringtone": "Stardust-crusaders",
+        "current_ringtone_id": 1
     },
     "ringtones": [
         {
@@ -18,8 +18,8 @@
     ],
     "tasks": [
         {
-            "type": "Lesson",
-            "name": "C++",
+            "type": "Test",
+            "name": "",
             "id": 0
         },
         {
@@ -33,8 +33,8 @@
             "id": 2
         },
         {
-            "type": "Break",
-            "name": "",
+            "type": "Lesson",
+            "name": "C++",
             "id": 3
         }
     ]

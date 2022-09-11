@@ -13,5 +13,6 @@ UI made with the PySimpleGUI library.
 - PySimpleGUI 
 - DateTime
 - PyGame
+- JSON
 # Sounds
 - Tobu - Candyland [NCS Release]: http://ncs.io/candyland
