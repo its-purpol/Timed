@@ -9,10 +9,10 @@
 # Timed
 Une application simple qui vous permet de créer des tâches pour organiser vos journées.
 Interface créée avec la librairie PySimpleGUI.
-# Librairies
+# Bibliothèques
 - PySimpleGUI 
 - DateTime
 - PyGame
 - JSON
-# Sounds
+# Musiques
 - Tobu - Candyland [NCS Release]: http://ncs.io/candyland
